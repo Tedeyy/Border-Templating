@@ -1,10 +1,19 @@
 {
-  "General Borders": [
+  "First Generation": [
     "Template1.png",
     "Template2.png",
     "Template3.png",
     "Template4.png",
-    "Template5.png",
+    "Template5.png"
+  ],
+
+  "IPs, PDLs, and Working Students": [
     "Template6.png"
+  ],
+
+  "PWDs": [
+  ],
+
+  "Solo Parents": [
   ]
 }
