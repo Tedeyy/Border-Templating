@@ -376,25 +376,37 @@ button:disabled {
 
 .template-details {
   display: grid;
-  gap: 6px;
-  border: 1px solid var(--soft-line);
+  gap: 8px;
+  border: 1px solid #c9d8ea;
+  border-left: 4px solid var(--accent);
   border-radius: 8px;
-  padding: 14px;
-  background: #fbfcfe;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.template-details-label {
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .template-details h3 {
   color: var(--ink);
-  font-size: 1.05rem;
-  line-height: 1.25;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
 .template-details p {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.45;
+  max-width: 78ch;
+  color: #445063;
+  font-size: 0.98rem;
+  line-height: 1.6;
 }
 
 .format-pill {
@@ -528,7 +540,12 @@ canvas {
   }
 
   .template-details h3 {
-    font-size: 0.98rem;
+    font-size: 1.08rem;
+  }
+
+  .template-details p {
+    font-size: 0.93rem;
+    line-height: 1.5;
   }
 
   .template-preview-box {
