@@ -18,6 +18,38 @@ const categoryDirs = {
 const manifest = {};
 const metadata = [];
 
+function loadExistingManifest() {
+  if (!fs.existsSync(manifestPath)) return {};
+
+  const rawData = fs.readFileSync(manifestPath, 'utf8').trim();
+  if (!rawData) return {};
+
+  const data = JSON.parse(rawData);
+  return data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+}
+
+function buildExistingCategoryMap(existingManifest) {
+  const categoryMap = new Map();
+
+  Object.entries(existingManifest).forEach(([categoryName, files]) => {
+    if (!Array.isArray(files)) return;
+
+    files.forEach((file) => {
+      if (!file) return;
+
+      const normalizedFile = file.replaceAll('\\', '/');
+      const filename = path.basename(normalizedFile);
+
+      categoryMap.set(normalizedFile, categoryName);
+      categoryMap.set(normalizedFile.toLowerCase(), categoryName);
+      categoryMap.set(filename, categoryName);
+      categoryMap.set(filename.toLowerCase(), categoryName);
+    });
+  });
+
+  return categoryMap;
+}
+
 function loadExistingMetadata() {
   if (!fs.existsSync(metadataPath)) return new Map();
 
@@ -63,6 +95,8 @@ function buildExistingMetadataMap(entries) {
   return metadataMap;
 }
 
+const existingManifest = loadExistingManifest();
+const existingCategoryMap = buildExistingCategoryMap(existingManifest);
 const existingMetadata = loadExistingMetadata();
 
 function titleFromFilename(file) {
@@ -159,10 +193,22 @@ const rootFiles = fs.readdirSync(templateDir)
   })
   .sort((a, b) => a.localeCompare(b));
 
-if (rootFiles.length > 0) {
-  manifest['General Borders'] = rootFiles;
-  rootFiles.forEach((file) => addMetadata('General Borders', file));
-}
+rootFiles.forEach((file) => {
+  const existing = existingMetadata.get(file)
+    || existingMetadata.get(file.toLowerCase())
+    || {};
+  const category = existingCategoryMap.get(file)
+    || existingCategoryMap.get(file.toLowerCase())
+    || existing.category
+    || 'General Borders';
+
+  if (!manifest[category]) {
+    manifest[category] = [];
+  }
+
+  manifest[category].push(file);
+  addMetadata(category, file);
+});
 
 fs.mkdirSync(dbDir, { recursive: true });
 const metadataByFile = metadata.reduce((templates, template) => {
