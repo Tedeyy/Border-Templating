@@ -99,6 +99,14 @@ const existingManifest = loadExistingManifest();
 const existingCategoryMap = buildExistingCategoryMap(existingManifest);
 const existingMetadata = loadExistingMetadata();
 
+Object.keys(existingManifest).forEach((categoryName) => {
+  manifest[categoryName.trim()] = [];
+});
+
+function compareTemplateFiles(a, b) {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+}
+
 function titleFromFilename(file) {
   const filename = path.basename(file, path.extname(file));
   return filename
@@ -145,7 +153,6 @@ function addMetadata(categoryName, relativeFile) {
     || existingMetadata.get(path.basename(normalizedFile).toLowerCase())
     || {};
   const title = existing.title || titleFromFilename(relativeFile);
-  const category = existing.category || categoryName;
 
   metadata.push({
     id: existing.id || slugFromPath(relativeFile),
@@ -153,7 +160,7 @@ function addMetadata(categoryName, relativeFile) {
     name: existing.name || titleFromFilename(relativeFile),
     title,
     description: existing.description || '',
-    category,
+    category: categoryName,
     file: normalizedFile,
     path: `assets/img/imgtemplate/${normalizedFile}`,
     filepath: existing.filepath || `assets/img/imgtemplate/${normalizedFile}`,
@@ -176,7 +183,7 @@ Object.entries(categoryDirs).forEach(([categoryName, dirName]) => {
     const files = fs.readdirSync(fullPath)
       .filter((file) => imageExtensions.has(path.extname(file).toLowerCase()))
       .map((file) => `${dirName}/${file}`)
-      .sort((a, b) => a.localeCompare(b));
+      .sort(compareTemplateFiles);
 
     if (files.length > 0) {
       manifest[categoryName] = files;
@@ -191,7 +198,7 @@ const rootFiles = fs.readdirSync(templateDir)
     const fullPath = path.join(templateDir, file);
     return fs.statSync(fullPath).isFile() && imageExtensions.has(path.extname(file).toLowerCase());
   })
-  .sort((a, b) => a.localeCompare(b));
+  .sort(compareTemplateFiles);
 
 rootFiles.forEach((file) => {
   const existing = existingMetadata.get(file)
@@ -201,13 +208,14 @@ rootFiles.forEach((file) => {
     || existingCategoryMap.get(file.toLowerCase())
     || existing.category
     || 'General Borders';
+  const normalizedCategory = category.trim();
 
-  if (!manifest[category]) {
-    manifest[category] = [];
+  if (!manifest[normalizedCategory]) {
+    manifest[normalizedCategory] = [];
   }
 
-  manifest[category].push(file);
-  addMetadata(category, file);
+  manifest[normalizedCategory].push(file);
+  addMetadata(normalizedCategory, file);
 });
 
 fs.mkdirSync(dbDir, { recursive: true });

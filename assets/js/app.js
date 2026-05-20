@@ -187,6 +187,9 @@ async function discoverTemplates() {
 }
 
 function getCategoryFromFile(file) {
+  const metadata = getTemplateMetadata(file);
+  if (metadata && metadata.category) return metadata.category;
+
   const lowercase = file.toLowerCase();
 
   if (lowercase.includes('solo') || lowercase.includes('parent')) {
