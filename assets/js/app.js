@@ -8,9 +8,6 @@ const ctx = canvas.getContext('2d');
 const photoInput = document.querySelector('#photoInput');
 const photoStatus = document.querySelector('#photoStatus');
 const templateSelect = document.querySelector('#templateSelect');
-const templatePreviewFrame = document.querySelector('.template-preview');
-const templatePreview = document.querySelector('#templatePreview');
-const templatePreviewText = document.querySelector('#templatePreviewText');
 const templateTitle = document.querySelector('#templateTitle');
 const templateDescription = document.querySelector('#templateDescription');
 const zoomRange = document.querySelector('#zoomRange');
@@ -215,20 +212,13 @@ function populateTemplates(categories) {
 
 function updateTemplatePreview(file) {
   if (!file) {
-    templatePreview.removeAttribute('src');
-    templatePreviewFrame.classList.remove('has-template');
-    templatePreviewText.textContent = 'No border selected';
     templateTitle.textContent = 'No template selected';
     templateDescription.textContent = 'Choose a border to view its details.';
     return;
   }
 
-  templatePreview.src = `${TEMPLATE_DIR}${file}`;
-  templatePreview.alt = `${file} border preview`;
-  templatePreviewText.textContent = templateFilename(file);
   templateTitle.textContent = templateTitleFromFile(file);
   templateDescription.textContent = templateDescriptionFromFile(file);
-  templatePreviewFrame.classList.add('has-template');
 }
 
 function drawPlaceholder() {

@@ -213,59 +213,6 @@ input[type="file"]::file-selector-button {
   gap: 8px;
 }
 
-.template-preview {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.template-preview-box {
-  position: relative;
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border: 1px solid var(--soft-line);
-  border-radius: 8px;
-  background:
-    linear-gradient(45deg, var(--canvas) 25%, transparent 25%),
-    linear-gradient(-45deg, var(--canvas) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, var(--canvas) 75%),
-    linear-gradient(-45deg, transparent 75%, var(--canvas) 75%);
-  background-color: #fff;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-  background-size: 16px 16px;
-}
-
-.template-preview img {
-  display: none;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.template-preview.has-template img {
-  display: block;
-}
-
-.template-preview.has-template span {
-  display: none;
-}
-
-.template-preview span {
-  padding: 12px;
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.template-preview figcaption {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
 label {
   color: var(--muted);
   font-size: 0.9rem;
@@ -630,10 +577,6 @@ canvas {
   .template-details p {
     font-size: 0.93rem;
     line-height: 1.5;
-  }
-
-  .template-preview-box {
-    max-height: 260px;
   }
 
   button,
