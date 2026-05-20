@@ -52,36 +52,62 @@
             <figcaption>Selected template</figcaption>
           </figure>
 
-          <div class="field-group">
-            <label for="zoomRange">Zoom</label>
-            <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1">
+          <div class="adjustments" aria-label="Photo adjustments">
+            <div class="settings-heading">
+              <div>
+                <h3>Photo settings</h3>
+                <p>Fine tune how your photo sits behind the border.</p>
+              </div>
+            </div>
+
+            <div class="adjustment-control">
+              <div class="control-head">
+                <label for="zoomRange">Photo size</label>
+                <output id="zoomValue" for="zoomRange">100%</output>
+              </div>
+              <div class="slider-row">
+                <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1">
+                <button class="mini-button" id="resetZoomBtn" type="button">Reset</button>
+              </div>
+            </div>
+
+            <div class="adjustment-control">
+              <div class="control-head">
+                <label for="xOffsetRange">Move left / right</label>
+                <output id="xOffsetValue" for="xOffsetRange">0 px</output>
+              </div>
+              <div class="slider-row">
+                <input id="xOffsetRange" type="range" min="-540" max="540" step="1" value="0">
+                <input id="xOffset" type="number" value="0" step="1" aria-label="Horizontal position in pixels">
+              </div>
+            </div>
+
+            <div class="adjustment-control">
+              <div class="control-head">
+                <label for="yOffsetRange">Move up / down</label>
+                <output id="yOffsetValue" for="yOffsetRange">0 px</output>
+              </div>
+              <div class="slider-row">
+                <input id="yOffsetRange" type="range" min="-540" max="540" step="1" value="0">
+                <input id="yOffset" type="number" value="0" step="1" aria-label="Vertical position in pixels">
+              </div>
+            </div>
+
+            <div class="button-row two-col">
+              <button id="resetPositionBtn" type="button">Reset Position</button>
+              <button id="centerBtn" type="button">Center Photo</button>
+            </div>
           </div>
 
-          <div class="grid-fields">
-            <label>
-              X
-              <input id="xOffset" type="number" value="0" step="1">
-            </label>
-            <label>
-              Y
-              <input id="yOffset" type="number" value="0" step="1">
-            </label>
-          </div>
-
-          <div class="button-row">
-            <button id="fitBtn" type="button">Fit</button>
-            <button id="fillBtn" type="button">Fill</button>
-            <button id="centerBtn" type="button">Center</button>
+          <div class="button-row fit-actions">
+            <button id="fitBtn" type="button">Fit Entire Photo</button>
+            <button id="fillBtn" type="button">Fill Border</button>
           </div>
         </aside>
 
         <section class="preview-panel" aria-label="Preview">
           <div class="preview-header">
-            <div>
-              <h2>Preview</h2>
-              <span id="templateLabel">Template pending</span>
-            </div>
-            <span class="format-pill">PNG</span>
+            <h2>Preview</h2>
           </div>
           <div class="template-details" aria-live="polite">
             <span class="template-details-label">Selected border details</span>

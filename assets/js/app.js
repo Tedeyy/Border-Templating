@@ -11,12 +11,18 @@ const templateSelect = document.querySelector('#templateSelect');
 const templatePreviewFrame = document.querySelector('.template-preview');
 const templatePreview = document.querySelector('#templatePreview');
 const templatePreviewText = document.querySelector('#templatePreviewText');
-const templateLabel = document.querySelector('#templateLabel');
 const templateTitle = document.querySelector('#templateTitle');
 const templateDescription = document.querySelector('#templateDescription');
 const zoomRange = document.querySelector('#zoomRange');
+const zoomValue = document.querySelector('#zoomValue');
+const resetZoomBtn = document.querySelector('#resetZoomBtn');
+const xOffsetRange = document.querySelector('#xOffsetRange');
 const xOffset = document.querySelector('#xOffset');
+const xOffsetValue = document.querySelector('#xOffsetValue');
+const yOffsetRange = document.querySelector('#yOffsetRange');
 const yOffset = document.querySelector('#yOffset');
+const yOffsetValue = document.querySelector('#yOffsetValue');
+const resetPositionBtn = document.querySelector('#resetPositionBtn');
 const fitBtn = document.querySelector('#fitBtn');
 const fillBtn = document.querySelector('#fillBtn');
 const centerBtn = document.querySelector('#centerBtn');
@@ -171,7 +177,6 @@ function populateTemplates(categories) {
     templateSelect.append(new Option('No templates detected', ''));
     templateSelect.disabled = true;
     updateTemplatePreview('');
-    templateLabel.textContent = 'No template detected';
     return;
   }
 
@@ -213,7 +218,6 @@ function updateTemplatePreview(file) {
     templatePreview.removeAttribute('src');
     templatePreviewFrame.classList.remove('has-template');
     templatePreviewText.textContent = 'No border selected';
-    templateLabel.textContent = 'No template selected';
     templateTitle.textContent = 'No template selected';
     templateDescription.textContent = 'Choose a border to view its details.';
     return;
@@ -222,7 +226,6 @@ function updateTemplatePreview(file) {
   templatePreview.src = `${TEMPLATE_DIR}${file}`;
   templatePreview.alt = `${file} border preview`;
   templatePreviewText.textContent = templateFilename(file);
-  templateLabel.textContent = templateFilename(file);
   templateTitle.textContent = templateTitleFromFile(file);
   templateDescription.textContent = templateDescriptionFromFile(file);
   templatePreviewFrame.classList.add('has-template');
@@ -283,8 +286,31 @@ function render() {
 
 function syncInputs() {
   zoomRange.value = state.zoom;
+  zoomValue.textContent = `${Math.round(state.zoom * 100)}%`;
+  xOffsetRange.value = Math.round(state.offsetX);
   xOffset.value = Math.round(state.offsetX);
+  xOffsetValue.textContent = `${Math.round(state.offsetX)} px`;
+  yOffsetRange.value = Math.round(state.offsetY);
   yOffset.value = Math.round(state.offsetY);
+  yOffsetValue.textContent = `${Math.round(state.offsetY)} px`;
+}
+
+function setZoom(value) {
+  state.zoom = Number(value);
+  syncInputs();
+  render();
+}
+
+function setXOffset(value) {
+  state.offsetX = Number(value);
+  syncInputs();
+  render();
+}
+
+function setYOffset(value) {
+  state.offsetY = Number(value);
+  syncInputs();
+  render();
 }
 
 async function setTemplate(file) {
@@ -335,28 +361,43 @@ templateSelect.addEventListener('change', (event) => {
 });
 
 zoomRange.addEventListener('input', (event) => {
-  state.zoom = Number(event.target.value);
-  render();
+  setZoom(event.target.value);
+});
+
+resetZoomBtn.addEventListener('click', () => {
+  setZoom(1);
+});
+
+xOffsetRange.addEventListener('input', (event) => {
+  setXOffset(event.target.value);
 });
 
 xOffset.addEventListener('input', (event) => {
-  state.offsetX = Number(event.target.value);
-  render();
+  setXOffset(event.target.value);
+});
+
+yOffsetRange.addEventListener('input', (event) => {
+  setYOffset(event.target.value);
 });
 
 yOffset.addEventListener('input', (event) => {
-  state.offsetY = Number(event.target.value);
-  render();
+  setYOffset(event.target.value);
 });
 
 fitBtn.addEventListener('click', () => fitPhoto('contain'));
 fillBtn.addEventListener('click', () => fitPhoto('cover'));
-centerBtn.addEventListener('click', () => {
+
+function resetPosition() {
   state.offsetX = 0;
   state.offsetY = 0;
   syncInputs();
   render();
-});
+}
+
+resetPositionBtn.addEventListener('click', resetPosition);
+centerBtn.addEventListener('click', resetPosition);
+
+syncInputs();
 
 downloadBtn.addEventListener('click', () => {
   const link = document.createElement('a');
