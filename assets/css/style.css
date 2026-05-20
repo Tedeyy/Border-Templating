@@ -85,6 +85,24 @@ input[type="file"]::file-selector-button {
   margin-bottom: 22px;
 }
 
+.announcement-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -8px 0 18px;
+  border: 1px solid #d8c176;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #fff8df;
+  color: #4f3c08;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.announcement-bar strong {
+  color: #2f4f86;
+}
+
 .brand-lockup {
   display: flex;
   align-items: center;
@@ -504,6 +522,13 @@ canvas {
   .topbar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .announcement-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: -2px;
   }
 
   .primary-action {
