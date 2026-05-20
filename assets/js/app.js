@@ -1,5 +1,6 @@
 const TEMPLATE_DIR = 'assets/img/imgtemplate/';
 const TEMPLATE_MANIFEST = `${TEMPLATE_DIR}templates.json`;
+const TEMPLATE_METADATA = 'assets/db/data.json';
 const TEMPLATE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
 
 const canvas = document.querySelector('#previewCanvas');
@@ -11,6 +12,8 @@ const templatePreviewFrame = document.querySelector('.template-preview');
 const templatePreview = document.querySelector('#templatePreview');
 const templatePreviewText = document.querySelector('#templatePreviewText');
 const templateLabel = document.querySelector('#templateLabel');
+const templateTitle = document.querySelector('#templateTitle');
+const templateDescription = document.querySelector('#templateDescription');
 const zoomRange = document.querySelector('#zoomRange');
 const xOffset = document.querySelector('#xOffset');
 const yOffset = document.querySelector('#yOffset');
@@ -22,6 +25,7 @@ const downloadBtn = document.querySelector('#downloadBtn');
 const state = {
   photo: null,
   template: null,
+  metadata: new Map(),
   zoom: 1,
   offsetX: 0,
   offsetY: 0,
@@ -37,9 +41,28 @@ function loadImage(src) {
 }
 
 function templateNameFromFile(file) {
+  const metadata = state.metadata.get(file);
+  if (metadata && metadata.name) return metadata.name;
+
   const filename = file.split('/').pop();
   const name = filename.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
   return name.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function templateFilename(file) {
+  return file.split('/').pop();
+}
+
+function templateTitleFromFile(file) {
+  const metadata = state.metadata.get(file);
+  return metadata && metadata.title ? metadata.title : templateNameFromFile(file);
+}
+
+function templateDescriptionFromFile(file) {
+  const metadata = state.metadata.get(file);
+  return metadata && metadata.description
+    ? metadata.description
+    : 'No description available for this border template.';
 }
 
 function normalizeTemplateFile(href) {
@@ -54,6 +77,28 @@ async function discoverTemplatesFromManifest() {
 
   const data = await response.json();
   return data;
+}
+
+async function loadTemplateMetadata() {
+  const response = await fetch(TEMPLATE_METADATA, { cache: 'no-store' });
+  if (!response.ok) return;
+
+  const data = await response.json();
+
+  if (data && Array.isArray(data.templates)) {
+    state.metadata = new Map(data.templates.map((template) => [template.file, template]));
+    return;
+  }
+
+  if (data && typeof data === 'object') {
+    state.metadata = new Map(Object.entries(data).map(([file, metadata]) => [
+      file,
+      {
+        ...metadata,
+        file,
+      },
+    ]));
+  }
 }
 
 async function discoverTemplatesFromDirectory() {
@@ -137,7 +182,7 @@ function populateTemplates(categories) {
   if (Array.isArray(categories)) {
     categories.forEach((file) => {
       if (!firstAvailableFile) firstAvailableFile = file;
-      templateSelect.append(new Option(templateNameFromFile(file), file));
+      templateSelect.append(new Option(templateFilename(file), file));
     });
   } else {
     Object.entries(categories).forEach(([categoryName, categoryFiles]) => {
@@ -149,7 +194,7 @@ function populateTemplates(categories) {
           if (!firstAvailableFile) {
             firstAvailableFile = file;
           }
-          optgroup.append(new Option(templateNameFromFile(file), file));
+          optgroup.append(new Option(templateFilename(file), file));
         });
 
         templateSelect.appendChild(optgroup);
@@ -169,13 +214,17 @@ function updateTemplatePreview(file) {
     templatePreviewFrame.classList.remove('has-template');
     templatePreviewText.textContent = 'No border selected';
     templateLabel.textContent = 'No template selected';
+    templateTitle.textContent = 'No template selected';
+    templateDescription.textContent = 'Choose a border to view its details.';
     return;
   }
 
   templatePreview.src = `${TEMPLATE_DIR}${file}`;
   templatePreview.alt = `${file} border preview`;
-  templatePreviewText.textContent = templateNameFromFile(file);
-  templateLabel.textContent = templateNameFromFile(file);
+  templatePreviewText.textContent = templateFilename(file);
+  templateLabel.textContent = templateFilename(file);
+  templateTitle.textContent = templateTitleFromFile(file);
+  templateDescription.textContent = templateDescriptionFromFile(file);
   templatePreviewFrame.classList.add('has-template');
 }
 
@@ -318,6 +367,7 @@ downloadBtn.addEventListener('click', () => {
 
 async function init() {
   try {
+    await loadTemplateMetadata();
     const files = await discoverTemplates();
     populateTemplates(files);
   } catch (error) {

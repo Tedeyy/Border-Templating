@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const templateDir = path.join(__dirname, '..', 'assets', 'img', 'imgtemplate');
+const dbDir = path.join(__dirname, '..', 'assets', 'db');
 const manifestPath = path.join(templateDir, 'templates.json');
+const metadataPath = path.join(dbDir, 'data.json');
 const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 
 // Define our categories and their directory names
@@ -14,6 +16,94 @@ const categoryDirs = {
 };
 
 const manifest = {};
+const metadata = [];
+
+function loadExistingMetadata() {
+  if (!fs.existsSync(metadataPath)) return new Map();
+
+  const rawData = fs.readFileSync(metadataPath, 'utf8').trim();
+  if (!rawData) return new Map();
+
+  const data = JSON.parse(rawData);
+
+  if (Array.isArray(data.templates)) {
+    return new Map(data.templates.map((template) => [template.file, template]));
+  }
+
+  if (data && typeof data === 'object') {
+    return new Map(Object.entries(data));
+  }
+
+  return new Map();
+}
+
+const existingMetadata = loadExistingMetadata();
+
+function titleFromFilename(file) {
+  const filename = path.basename(file, path.extname(file));
+  return filename
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function slugFromPath(file) {
+  return file
+    .replace(path.extname(file), '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getImageDimensions(fullPath) {
+  const buffer = fs.readFileSync(fullPath);
+  const extension = path.extname(fullPath).toLowerCase();
+
+  if (extension === '.png' && buffer.toString('ascii', 1, 4) === 'PNG') {
+    return {
+      width: buffer.readUInt32BE(16),
+      height: buffer.readUInt32BE(20)
+    };
+  }
+
+  return {
+    width: null,
+    height: null
+  };
+}
+
+function addMetadata(categoryName, relativeFile) {
+  const fullPath = path.join(templateDir, relativeFile);
+  const stats = fs.statSync(fullPath);
+  const extension = path.extname(relativeFile).toLowerCase();
+  const dimensions = getImageDimensions(fullPath);
+  const normalizedFile = relativeFile.replaceAll('\\', '/');
+  const existing = existingMetadata.get(normalizedFile) || existingMetadata.get(path.basename(normalizedFile)) || {};
+  const title = existing.title || titleFromFilename(relativeFile);
+  const category = existing.category || categoryName;
+
+  metadata.push({
+    id: existing.id || slugFromPath(relativeFile),
+    slug: existing.slug || slugFromPath(relativeFile),
+    name: existing.name || titleFromFilename(relativeFile),
+    title,
+    description: existing.description || '',
+    category,
+    file: normalizedFile,
+    path: `assets/img/imgtemplate/${normalizedFile}`,
+    filepath: existing.filepath || `assets/img/imgtemplate/${normalizedFile}`,
+    directory: path.dirname(relativeFile).replaceAll('\\', '/'),
+    filename: path.basename(relativeFile),
+    extension: extension.replace('.', ''),
+    sizeBytes: stats.size,
+    width: dimensions.width,
+    height: dimensions.height,
+    aspectRatio: dimensions.width && dimensions.height
+      ? Number((dimensions.width / dimensions.height).toFixed(4))
+      : null
+  });
+}
 
 // 1. Scan category subdirectories
 Object.entries(categoryDirs).forEach(([categoryName, dirName]) => {
@@ -23,9 +113,10 @@ Object.entries(categoryDirs).forEach(([categoryName, dirName]) => {
       .filter((file) => imageExtensions.has(path.extname(file).toLowerCase()))
       .map((file) => `${dirName}/${file}`)
       .sort((a, b) => a.localeCompare(b));
-    
+
     if (files.length > 0) {
       manifest[categoryName] = files;
+      files.forEach((file) => addMetadata(categoryName, file));
     }
   }
 });
@@ -40,7 +131,32 @@ const rootFiles = fs.readdirSync(templateDir)
 
 if (rootFiles.length > 0) {
   manifest['General Borders'] = rootFiles;
+  rootFiles.forEach((file) => addMetadata('General Borders', file));
 }
 
+fs.mkdirSync(dbDir, { recursive: true });
+const metadataByFile = metadata.reduce((templates, template) => {
+  templates[template.file] = {
+    name: template.name,
+    title: template.title,
+    description: template.description,
+    category: template.category,
+    filepath: template.filepath,
+    id: template.id,
+    slug: template.slug,
+    filename: template.filename,
+    extension: template.extension,
+    sizeBytes: template.sizeBytes,
+    width: template.width,
+    height: template.height,
+    aspectRatio: template.aspectRatio
+  };
+
+  return templates;
+}, {});
+
 fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`Generated template manifest with ${Object.values(manifest).flat().length} templates.`);
+fs.writeFileSync(metadataPath, `${JSON.stringify(metadataByFile, null, 2)}\n`);
+
+console.log(`Generated template manifest with ${metadata.length} templates.`);
+console.log(`Generated template metadata at ${path.relative(process.cwd(), metadataPath)}.`);
