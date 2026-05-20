@@ -75,8 +75,10 @@ function templateDescriptionFromFile(file) {
 function getTemplateMetadata(file) {
   const filename = templateFilename(file);
   const normalizedFile = file.replaceAll('\\', '/');
+  const normalizedFileLowercase = normalizedFile.toLowerCase();
 
   return state.metadata.get(normalizedFile)
+    || state.metadata.get(normalizedFileLowercase)
     || state.metadata.get(filename)
     || state.metadata.get(filename.toLowerCase())
     || null;
@@ -128,12 +130,14 @@ function buildMetadataMap(entries) {
     const filename = templateFilename(normalizedFile);
 
     metadataMap.set(normalizedFile, metadata);
+    metadataMap.set(normalizedFile.toLowerCase(), metadata);
     metadataMap.set(filename, metadata);
     metadataMap.set(filename.toLowerCase(), metadata);
 
     if (metadata.filepath) {
       const normalizedPath = metadata.filepath.replaceAll('\\', '/');
       metadataMap.set(normalizedPath, metadata);
+      metadataMap.set(normalizedPath.toLowerCase(), metadata);
       metadataMap.set(templateFilename(normalizedPath), metadata);
       metadataMap.set(templateFilename(normalizedPath).toLowerCase(), metadata);
     }

@@ -27,14 +27,40 @@ function loadExistingMetadata() {
   const data = JSON.parse(rawData);
 
   if (Array.isArray(data.templates)) {
-    return new Map(data.templates.map((template) => [template.file, template]));
+    return buildExistingMetadataMap(data.templates.map((template) => [template.file, template]));
   }
 
   if (data && typeof data === 'object') {
-    return new Map(Object.entries(data));
+    return buildExistingMetadataMap(Object.entries(data));
   }
 
   return new Map();
+}
+
+function buildExistingMetadataMap(entries) {
+  const metadataMap = new Map();
+
+  entries.forEach(([file, metadata]) => {
+    if (!file || !metadata) return;
+
+    const normalizedFile = file.replaceAll('\\', '/');
+    const filename = path.basename(normalizedFile);
+
+    metadataMap.set(normalizedFile, metadata);
+    metadataMap.set(normalizedFile.toLowerCase(), metadata);
+    metadataMap.set(filename, metadata);
+    metadataMap.set(filename.toLowerCase(), metadata);
+
+    if (metadata.filepath) {
+      const normalizedPath = metadata.filepath.replaceAll('\\', '/');
+      metadataMap.set(normalizedPath, metadata);
+      metadataMap.set(normalizedPath.toLowerCase(), metadata);
+      metadataMap.set(path.basename(normalizedPath), metadata);
+      metadataMap.set(path.basename(normalizedPath).toLowerCase(), metadata);
+    }
+  });
+
+  return metadataMap;
 }
 
 const existingMetadata = loadExistingMetadata();
@@ -79,7 +105,11 @@ function addMetadata(categoryName, relativeFile) {
   const extension = path.extname(relativeFile).toLowerCase();
   const dimensions = getImageDimensions(fullPath);
   const normalizedFile = relativeFile.replaceAll('\\', '/');
-  const existing = existingMetadata.get(normalizedFile) || existingMetadata.get(path.basename(normalizedFile)) || {};
+  const existing = existingMetadata.get(normalizedFile)
+    || existingMetadata.get(normalizedFile.toLowerCase())
+    || existingMetadata.get(path.basename(normalizedFile))
+    || existingMetadata.get(path.basename(normalizedFile).toLowerCase())
+    || {};
   const title = existing.title || titleFromFilename(relativeFile);
   const category = existing.category || categoryName;
 
