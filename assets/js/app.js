@@ -10,6 +10,7 @@ const photoStatus = document.querySelector('#photoStatus');
 const templateSelect = document.querySelector('#templateSelect');
 const templateTitle = document.querySelector('#templateTitle');
 const templateDescription = document.querySelector('#templateDescription');
+const photoSettings = document.querySelector('#photoSettings');
 const zoomRange = document.querySelector('#zoomRange');
 const zoomValue = document.querySelector('#zoomValue');
 const resetZoomBtn = document.querySelector('#resetZoomBtn');
@@ -343,6 +344,8 @@ photoInput.addEventListener('change', async (event) => {
   state.photo = await loadImage(objectUrl);
   URL.revokeObjectURL(objectUrl);
   photoStatus.textContent = file.name;
+  photoSettings.hidden = false;
+  document.body.classList.add('photo-loaded');
   fitPhoto('cover');
 });
 
