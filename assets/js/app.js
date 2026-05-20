@@ -50,15 +50,10 @@ function normalizeTemplateFile(href) {
 
 async function discoverTemplatesFromManifest() {
   const response = await fetch(TEMPLATE_MANIFEST, { cache: 'no-store' });
-  if (!response.ok) return [];
+  if (!response.ok) return null;
 
-  const files = await response.json();
-  if (!Array.isArray(files)) return [];
-
-  return files
-    .filter((file) => typeof file === 'string')
-    .filter((file) => TEMPLATE_EXTENSIONS.some((extension) => file.toLowerCase().endsWith(extension)))
-    .sort((a, b) => a.localeCompare(b));
+  const data = await response.json();
+  return data;
 }
 
 async function discoverTemplatesFromDirectory() {
@@ -75,16 +70,59 @@ async function discoverTemplatesFromDirectory() {
 }
 
 async function discoverTemplates() {
-  const manifestFiles = await discoverTemplatesFromManifest();
-  if (manifestFiles.length) return manifestFiles;
+  const manifestData = await discoverTemplatesFromManifest();
 
-  return discoverTemplatesFromDirectory();
+  if (manifestData && typeof manifestData === 'object' && !Array.isArray(manifestData)) {
+    return manifestData;
+  }
+
+  // Fallback to array if it is the old array format or directory listing
+  const filesArray = Array.isArray(manifestData) ? manifestData : await discoverTemplatesFromDirectory();
+
+  // Convert flat files array to category map
+  const categories = {
+    'Final Higher Education': [],
+    'Solo Parents Higher Education': [],
+    'PWD Higher Education': [],
+    'Final IPS, PDLs and Working Students': [],
+    'General Borders': []
+  };
+
+  filesArray.forEach((file) => {
+    const category = getCategoryFromFile(file);
+    categories[category].push(file);
+  });
+
+  return categories;
 }
 
-function populateTemplates(files) {
+function getCategoryFromFile(file) {
+  const lowercase = file.toLowerCase();
+
+  if (lowercase.includes('solo') || lowercase.includes('parent')) {
+    return 'Solo Parents Higher Education';
+  }
+  if (lowercase.includes('pwd')) {
+    return 'PWD Higher Education';
+  }
+  if (lowercase.includes('ips') || lowercase.includes('pdl') || lowercase.includes('working') || lowercase.includes('student')) {
+    return 'Final IPS, PDLs and Working Students';
+  }
+  if (lowercase.includes('higher') || lowercase.includes('education') || lowercase.includes('final') || lowercase.includes('he')) {
+    return 'Final Higher Education';
+  }
+
+  return 'General Borders';
+}
+
+function populateTemplates(categories) {
   templateSelect.innerHTML = '';
 
-  if (!files.length) {
+  const totalFiles = Array.isArray(categories)
+    ? categories.length
+    : Object.values(categories).flat().length;
+
+  if (!totalFiles) {
     templateSelect.append(new Option('No templates detected', ''));
     templateSelect.disabled = true;
     updateTemplatePreview('');
@@ -94,12 +132,35 @@ function populateTemplates(files) {
 
   templateSelect.disabled = false;
 
-  files.forEach((file) => {
-    templateSelect.append(new Option(templateNameFromFile(file), file));
-  });
+  let firstAvailableFile = '';
 
-  updateTemplatePreview(files[0]);
-  setTemplate(files[0]);
+  if (Array.isArray(categories)) {
+    categories.forEach((file) => {
+      if (!firstAvailableFile) firstAvailableFile = file;
+      templateSelect.append(new Option(templateNameFromFile(file), file));
+    });
+  } else {
+    Object.entries(categories).forEach(([categoryName, categoryFiles]) => {
+      if (categoryFiles.length > 0) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = categoryName;
+
+        categoryFiles.forEach((file) => {
+          if (!firstAvailableFile) {
+            firstAvailableFile = file;
+          }
+          optgroup.append(new Option(templateNameFromFile(file), file));
+        });
+
+        templateSelect.appendChild(optgroup);
+      }
+    });
+  }
+
+  if (firstAvailableFile) {
+    updateTemplatePreview(firstAvailableFile);
+    setTemplate(firstAvailableFile);
+  }
 }
 
 function updateTemplatePreview(file) {

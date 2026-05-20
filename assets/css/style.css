@@ -297,6 +297,19 @@ input[type="number"] {
   color: var(--ink);
 }
 
+optgroup {
+  font-weight: 700;
+  color: var(--accent);
+  background: #fff;
+  padding: 4px;
+}
+
+option {
+  font-weight: 400;
+  color: var(--ink);
+  padding: 4px 8px;
+}
+
 input[type="range"] {
   accent-color: var(--accent);
 }
