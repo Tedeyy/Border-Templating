@@ -381,6 +381,10 @@ button:disabled {
   color: #fff;
 }
 
+.mobile-download-action {
+  display: none;
+}
+
 .preview-panel {
   display: grid;
   gap: 16px;
@@ -485,6 +489,15 @@ canvas {
 
   .primary-action {
     width: 100%;
+  }
+
+  .topbar .primary-action {
+    display: none;
+  }
+
+  .mobile-download-action {
+    display: block;
+    order: -1;
   }
 
   .brand-lockup {

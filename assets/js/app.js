@@ -25,6 +25,8 @@ const fitBtn = document.querySelector('#fitBtn');
 const fillBtn = document.querySelector('#fillBtn');
 const centerBtn = document.querySelector('#centerBtn');
 const downloadBtn = document.querySelector('#downloadBtn');
+const mobileDownloadBtn = document.querySelector('#mobileDownloadBtn');
+const downloadButtons = [downloadBtn, mobileDownloadBtn].filter(Boolean);
 
 const state = {
   photo: null,
@@ -45,7 +47,7 @@ function loadImage(src) {
 }
 
 function templateNameFromFile(file) {
-  const metadata = state.metadata.get(file);
+  const metadata = getTemplateMetadata(file);
   if (metadata && metadata.name) return metadata.name;
 
   const filename = file.split('/').pop();
@@ -58,15 +60,25 @@ function templateFilename(file) {
 }
 
 function templateTitleFromFile(file) {
-  const metadata = state.metadata.get(file);
+  const metadata = getTemplateMetadata(file);
   return metadata && metadata.title ? metadata.title : templateNameFromFile(file);
 }
 
 function templateDescriptionFromFile(file) {
-  const metadata = state.metadata.get(file);
+  const metadata = getTemplateMetadata(file);
   return metadata && metadata.description
     ? metadata.description
     : 'No description available for this border template.';
+}
+
+function getTemplateMetadata(file) {
+  const filename = templateFilename(file);
+  const normalizedFile = file.replaceAll('\\', '/');
+
+  return state.metadata.get(normalizedFile)
+    || state.metadata.get(filename)
+    || state.metadata.get(filename.toLowerCase())
+    || null;
 }
 
 function normalizeTemplateFile(href) {
@@ -90,12 +102,12 @@ async function loadTemplateMetadata() {
   const data = await response.json();
 
   if (data && Array.isArray(data.templates)) {
-    state.metadata = new Map(data.templates.map((template) => [template.file, template]));
+    state.metadata = buildMetadataMap(data.templates.map((template) => [template.file, template]));
     return;
   }
 
   if (data && typeof data === 'object') {
-    state.metadata = new Map(Object.entries(data).map(([file, metadata]) => [
+    state.metadata = buildMetadataMap(Object.entries(data).map(([file, metadata]) => [
       file,
       {
         ...metadata,
@@ -103,6 +115,30 @@ async function loadTemplateMetadata() {
       },
     ]));
   }
+}
+
+function buildMetadataMap(entries) {
+  const metadataMap = new Map();
+
+  entries.forEach(([file, metadata]) => {
+    if (!file || !metadata) return;
+
+    const normalizedFile = file.replaceAll('\\', '/');
+    const filename = templateFilename(normalizedFile);
+
+    metadataMap.set(normalizedFile, metadata);
+    metadataMap.set(filename, metadata);
+    metadataMap.set(filename.toLowerCase(), metadata);
+
+    if (metadata.filepath) {
+      const normalizedPath = metadata.filepath.replaceAll('\\', '/');
+      metadataMap.set(normalizedPath, metadata);
+      metadataMap.set(templateFilename(normalizedPath), metadata);
+      metadataMap.set(templateFilename(normalizedPath).toLowerCase(), metadata);
+    }
+  });
+
+  return metadataMap;
 }
 
 async function discoverTemplatesFromDirectory() {
@@ -272,7 +308,9 @@ function render() {
     drawPlaceholder();
   }
 
-  downloadBtn.disabled = !state.photo;
+  downloadButtons.forEach((button) => {
+    button.disabled = !state.photo;
+  });
 }
 
 function syncInputs() {
@@ -392,11 +430,15 @@ centerBtn.addEventListener('click', resetPosition);
 
 syncInputs();
 
-downloadBtn.addEventListener('click', () => {
+function downloadImage() {
   const link = document.createElement('a');
   link.download = 'border-template.png';
   link.href = canvas.toDataURL('image/png');
   link.click();
+}
+
+downloadButtons.forEach((button) => {
+  button.addEventListener('click', downloadImage);
 });
 
 async function init() {
