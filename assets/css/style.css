@@ -198,6 +198,25 @@ h3 {
   min-width: 0;
 }
 
+.remove-photo-button {
+  justify-self: start;
+  min-height: 36px;
+  border-color: #e3a7a7;
+  background: #fff7f7;
+  color: #9b2424;
+  padding: 0 12px;
+  font-size: 0.86rem;
+}
+
+.remove-photo-button:hover:not(:disabled) {
+  border-color: #c84646;
+  color: #7a1717;
+}
+
+.remove-photo-button[hidden] {
+  display: none;
+}
+
 input[type="file"]::file-selector-button {
   min-height: 36px;
   margin-right: 10px;
@@ -662,6 +681,11 @@ canvas {
   select,
   input[type="number"] {
     min-height: 46px;
+  }
+
+  .remove-photo-button {
+    justify-self: stretch;
+    width: 100%;
   }
 }
 

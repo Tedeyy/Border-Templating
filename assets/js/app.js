@@ -7,6 +7,7 @@ const canvas = document.querySelector('#previewCanvas');
 const ctx = canvas.getContext('2d');
 const photoInput = document.querySelector('#photoInput');
 const photoStatus = document.querySelector('#photoStatus');
+const removePhotoBtn = document.querySelector('#removePhotoBtn');
 const templateSelect = document.querySelector('#templateSelect');
 const templateTitle = document.querySelector('#templateTitle');
 const templateDescription = document.querySelector('#templateDescription');
@@ -383,8 +384,23 @@ photoInput.addEventListener('change', async (event) => {
   URL.revokeObjectURL(objectUrl);
   photoStatus.textContent = file.name;
   photoSettings.hidden = false;
+  removePhotoBtn.hidden = false;
   document.body.classList.add('photo-loaded');
   fitPhoto('cover');
+});
+
+removePhotoBtn.addEventListener('click', () => {
+  state.photo = null;
+  state.zoom = 1;
+  state.offsetX = 0;
+  state.offsetY = 0;
+  photoInput.value = '';
+  photoStatus.textContent = 'No photo selected';
+  photoSettings.hidden = true;
+  removePhotoBtn.hidden = true;
+  document.body.classList.remove('photo-loaded');
+  syncInputs();
+  render();
 });
 
 templateSelect.addEventListener('change', (event) => {
