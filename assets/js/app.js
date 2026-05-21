@@ -2,6 +2,7 @@ const TEMPLATE_DIR = 'assets/img/imgtemplate/';
 const TEMPLATE_MANIFEST = `${TEMPLATE_DIR}templates.json`;
 const TEMPLATE_METADATA = 'assets/db/data.json';
 const TEMPLATE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
+const DEFAULT_TEMPLATE = 'Template19.png';
 
 const canvas = document.querySelector('#previewCanvas');
 const ctx = canvas.getContext('2d');
@@ -208,6 +209,10 @@ function getCategoryFromFile(file) {
   return 'General Borders';
 }
 
+function templateMatchesDefault(file) {
+  return templateFilename(file).toLowerCase() === DEFAULT_TEMPLATE.toLowerCase();
+}
+
 function populateTemplates(categories) {
   templateSelect.innerHTML = '';
 
@@ -225,10 +230,12 @@ function populateTemplates(categories) {
   templateSelect.disabled = false;
 
   let firstAvailableFile = '';
+  let defaultTemplateFile = '';
 
   if (Array.isArray(categories)) {
     categories.forEach((file) => {
       if (!firstAvailableFile) firstAvailableFile = file;
+      if (!defaultTemplateFile && templateMatchesDefault(file)) defaultTemplateFile = file;
       templateSelect.append(new Option(templateFilename(file), file));
     });
   } else {
@@ -241,6 +248,9 @@ function populateTemplates(categories) {
           if (!firstAvailableFile) {
             firstAvailableFile = file;
           }
+          if (!defaultTemplateFile && templateMatchesDefault(file)) {
+            defaultTemplateFile = file;
+          }
           optgroup.append(new Option(templateFilename(file), file));
         });
 
@@ -249,9 +259,12 @@ function populateTemplates(categories) {
     });
   }
 
-  if (firstAvailableFile) {
-    updateTemplatePreview(firstAvailableFile);
-    setTemplate(firstAvailableFile);
+  const selectedTemplate = defaultTemplateFile || firstAvailableFile;
+
+  if (selectedTemplate) {
+    templateSelect.value = selectedTemplate;
+    updateTemplatePreview(selectedTemplate);
+    setTemplate(selectedTemplate);
   }
 }
 
