@@ -268,5 +268,20 @@
     "width": 1500,
     "height": 1500,
     "aspectRatio": 1
+  },
+  "Template19.png": {
+    "name": "Template 19",
+    "title": "Honoring The Courage Of Every Learner @ NBSC",
+    "description": "Celebrate Higher Education Celebration 2026 by honoring every learner whose courage, perseverance, and dreams help create futures, transform lives, and inspire the NBSC community.",
+    "category": "New Templates",
+    "filepath": "assets/img/imgtemplate/Template19.png",
+    "id": "template19",
+    "slug": "template19",
+    "filename": "Template19.png",
+    "extension": "png",
+    "sizeBytes": 1013005,
+    "width": 1500,
+    "height": 1500,
+    "aspectRatio": 1
   }
 }
